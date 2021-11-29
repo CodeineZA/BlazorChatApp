@@ -1,0 +1,86 @@
+﻿@page "/register"
+@using BlazorChatApp.Client.Shared
+@inject LocalStorageService Storage
+@inject IJSRuntime iJSRuntime;
+@inject NavigationManager NavigationManager
+
+<PageTitle>Registration</PageTitle>
+
+<section class="vh-100 gradient-custom">
+  <div class="container py-5 h-100">
+    <div class="row justify-content-center align-items-center h-100">
+      <div class="col-12 col-lg-9 col-xl-7">
+        <div class="card shadow-2-strong card-registration" style="border-radius: 15px;">
+          <div class="card-body p-4 p-md-5">
+            <h3 class="mb-4 pb-2 pb-md-0 mb-md-5">Registration Form</h3>
+            <form>
+
+              <div class="row">
+                <div class="col-md-6 mb-4">
+
+                  <div class="form-outline">
+                    <input type="text" @bind-value="_fname" @bind-value:event="oninput" class="form-control form-control-lg"/>
+                    <label class="form-label" @bind="_fname"for="_fname">First Name</label>
+                  </div>
+
+                </div>
+                <div class="col-md-6 mb-4">
+
+                  <div class="form-outline">
+                    <input type="text" @bind-value="_lname" @bind-value:event="oninput" class="form-control form-control-lg"/>
+                    <label class="form-label" @bind="_lname" for="_lname">Last Name</label>
+                  </div>
+
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6 mb-4 d-flex align-items-center">
+
+                  <div class="form-outline">
+                    <input type="text" @bind-value="_uname" @bind-value:event="oninput" class="form-control form-control-lg"/>
+                    <label class="form-label" for="userName">Username</label>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-4 pt-2">
+                
+                <input class="btn btn-primary btn-lg" @onclick="register" type="submit" value="Submit" />
+              </div>
+
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+@code{
+    public string _fname { get; set; }
+    public string _uname { get; set; }
+    public string _lname { get; set; }
+
+    async Task register()
+    {
+        await SetValue("fname", _fname);
+        await SetValue("lname", _lname);
+        await SetValue("uname", _uname);
+        NavigationManager.NavigateTo("/chat");
+    }
+
+    async Task SetValue(string key, string Value)
+    {
+
+        await Storage.SetLocalStorage(key, Value);
+    }
+
+    async Task<string> GetValue(string key)
+    {
+       return await Storage.GetFromLocalStorage(key);
+
+    }
+
+}

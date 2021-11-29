@@ -1,0 +1,96 @@
+﻿@page "/chat"
+@using Microsoft.AspNetCore.SignalR.Client
+@using BlazorChatApp.Client.Shared
+@using BlazorChatApp.Shared.Models
+
+@inject LocalStorageService Storage
+@inject IJSRuntime iJSRuntime;
+@inject NavigationManager NavigationManager
+@implements IAsyncDisposable
+
+<PageTitle>Index</PageTitle>
+
+<div class="form-group">
+    <label>
+        User:
+        <input  @bind="userInput" />
+    </label>
+</div>
+<div class="form-group">
+    <label>
+        Message:
+        <input @bind="messageInput" size="50" />
+    </label>
+</div>
+<button @onclick="Send" disabled="@(!IsConnected)">Send</button>
+
+<hr>
+
+    @foreach (var message in messages)
+{
+    <div style= "width : 100%">
+        <div style="
+    border-style: solid;
+    width: 50%;
+    border-width: thin;
+    border-radius: 25px;
+    padding: 0.5em;
+    float: @(@userInput == @message.UserName?"inherit":"right");
+">
+            @message.UserName: @message.Message
+        </div>
+    </div>
+
+}
+
+@code {
+    private HubConnection? hubConnection;
+    private List<ChatModel> messages = new List<ChatModel>();
+    private string? userInput;
+    private string? messageInput;
+
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/chathub"))
+            .Build();
+
+        hubConnection.On<string, string>("ReceiveMessage", (user, message) =>
+        {
+            messages.Add(
+            new ChatModel
+                {
+                    UserName = user,
+                    Message = message
+                });
+            StateHasChanged();
+        });
+
+        await hubConnection.StartAsync();
+        userInput = await GetValue("uname");
+    }
+
+    private async Task Send()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("SendMessage", userInput, messageInput);
+        }
+    }
+
+    public bool IsConnected =>
+        hubConnection?.State == HubConnectionState.Connected;
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+    async Task<string> GetValue(string key)
+    {
+        return await Storage.GetFromLocalStorage(key);
+
+    }
+}

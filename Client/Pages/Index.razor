@@ -1,0 +1,26 @@
+﻿@page "/"
+@using BlazorChatApp.Client.Shared
+@inject LocalStorageService Storage
+@inject IJSRuntime iJSRuntime;
+@inject NavigationManager NavigationManager
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var loggedin = await GetValue("uname");
+        if (loggedin != null)
+        {
+            NavigationManager.NavigateTo("/chat");
+        }
+        else
+        { 
+            NavigationManager.NavigateTo("/register");
+        }
+    }
+
+    async Task<string> GetValue(string key)
+    {
+        return await Storage.GetFromLocalStorage(key);
+
+    }
+}
